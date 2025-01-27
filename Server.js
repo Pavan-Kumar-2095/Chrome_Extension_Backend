@@ -4,142 +4,98 @@ const express = require('express');
 const app = express();
 app.use(cors());
 app.use(express.json());
-require('dotenv').config(); /////////////
-const fs = require('fs');   /////////////
-const multer = require('multer');
+require('dotenv').config();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-
 const axios = require('axios');
-const imageToBase64 = require('image-to-base64');
 
-const cloudinary = require('cloudinary').v2;
-cloudinary.config({ 
-    cloud_name: 'drxhp8vhx', 
-    api_key: '341522599126842', 
-    api_secret: '-1LqPTfukFg0WnRQFnWAfufLiYQ' // Click 'View API Keys' above to copy your API secret
+app.use(cors());
+
+const key = process.env.api_key;
+
+const genAI = new GoogleGenerativeAI(api_key=key);  
+
+app.get('/', async (req, res) => {
+  console.log("connected")
 });
 
 
-const allowedOrigins = [
-  'https://image-recognition-chat-bot.vercel.app',
-];
-
-app.use(cors({
-  origin: allowedOrigins,
-}));
-
-const genAI = new GoogleGenerativeAI(api_key="AIzaSyAjHwUezAl-I-JmzVokQ7TpIE0V8Y9Y1YY"); 
-
-const storage = multer.diskStorage({
-    destination:(req,file,cb)=>{
-        cb(null,'uploded-images');
-    },
-    filename:(req,file,cb)=>{
-        cb(null,Date.now() + "-" + file.originalname);
-    }
-});
-
-const upload = multer({ storage: storage }).single('file');
-
-let fileroute;
-let cloudinary_Generated_Url_of_Image; 
-
-
-app.post('/upload', async (req, res) => {
-    console.log("Uploading data...");
-  
-    // Use multer to handle the upload
-    upload(req, res, async (err) => {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-  
-      // Path of the uploaded file
-      const fileroute = req.file.path;
-  
-      try {
-        // Upload to Cloudinary and get URL
-        const cloudinaryUrl = await getfile_url(fileroute);
-        res.json({ imageUrl: cloudinaryUrl }); // Return the Cloudinary image URL as a response
-      } catch (uploadError) {
-        console.error('Error uploading to Cloudinary:', uploadError);
-        return res.status(500).json({ error: 'Error uploading image to Cloudinary' });
-      }
-
-      fs.unlink(fileroute, (deleteErr) => {
-        if (deleteErr) {
-          console.error('Error deleting local file:', deleteErr);
-        } else {
-          console.log('Local file deleted successfully');
-        }
-    })
-
-
-    });
-
-});
-  
-  // Helper function to upload image to Cloudinary and get URL
-  async function getfile_url(fileroute) {
-    try {
-      const result = await cloudinary.uploader.upload(fileroute);
-      console.log('Uploaded image URL:', result.secure_url); // Log the URL of the uploaded image
-      cloudinary_Generated_Url_of_Image = result.secure_url;
-      return result.secure_url; // Return the secure URL from Cloudinary
-    } catch (error) {
-      throw new Error('Error uploading image to Cloudinary');
-    }
-  }
-
-app.post('/delete' ,async(req,res)=>{
-    console.log("deleting data...");
-})
-
-app.post('/Analyse', async (req, res) => {
-    console.log("Analysing data...");
-    try {
+app.post('/Summarize', async (req, res) => {
+    console.log("Summarizing data...");
+    try{
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
         const prompt = req.body.message;
         
-        // Call the function to fetch the image, convert it to Base64
-        const result = await model.generateContent([prompt, await fileToGenerativePart(cloudinary_Generated_Url_of_Image , "image/jpeg")]);
+        const result = await model.generateContent([ `  summarize about the word in one short line ` , prompt ]);
         
         const responseText = await result.response.text();
-        res.send(responseText);
-        console.log(prompt, responseText);
+        console.log(prompt, responseText , result);
+        res.json({data : responseText});
+        
     } catch (err) {
         console.error("Error in Analyse endpoint:", err);
-        res.status(500).json({ error: "Try again" });
+        res.json({ error: "Try again" });
     }
 });
 
 
-async function fileToGenerativePart(imageUrl, mimeType) {
-    try {
+app.post('/Translate', async (req, res) => {
+  console.log("Translating data...");
+    try{
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+        const prompt = req.body.message;
         
-        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-
-        console.log("Image fetched successfully, response status:", response.status);
-        console.log("Image size (in bytes):", response.data.length);
-
-       
-        const base64Data = Buffer.from(response.data, 'binary').toString('base64');
-        console.log("Base64 Image Data:", base64Data);
-
+        const result = await model.generateContent([ `  Translate the word to english and print only the output ` , prompt ]);
         
-        return {
-            inlineData: {
-                data: base64Data,
-                mimeType: mimeType
-            }
-        };
-    } catch (error) {
-        console.error("Error fetching image from URL:", error);
-        throw error; 
+        const responseText = await result.response.text();
+        console.log(prompt, responseText , result);
+        res.json({data : responseText});
+        
+    } catch (err) {
+        console.error("Error in Analyse endpoint:", err);
+        res.json({ error: "Try again" });
     }
-};
+});
+
+app.post('/meaning', async (req, res) => {
+  console.log("meaning data...");
+    try{
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+        const prompt = req.body.message;
+        
+        const result = await model.generateContent([ ` meaning of the word in english dictionary in short ` , prompt ]);
+        
+        const responseText = await result.response.text();
+        console.log(prompt, responseText , result);
+        res.json({data : responseText});
+        
+    } catch (err) {
+        console.error("Error in Analyse endpoint:", err);
+        res.json({ error: "Try again" });
+    }
+});
+
+app.post('/Information', async (req, res) => {
+  console.log("extracting information of the  data...");
+    try{
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+        const prompt = req.body.message;
+        
+        const result = await model.generateContent([ `  information of the word in english ` , prompt ]);
+        
+        const responseText = await result.response.text();
+        console.log(prompt, responseText , result);
+        res.json({data : responseText});
+        
+    } catch (err) {
+        console.error("Error in Analyse endpoint:", err);
+        res.json({ error: "Try again" });
+    }
+});
 
 
 app.listen(PORT,()=>{
     console.log("server running at port:" , PORT)
 });
+
+
+// shashikala
