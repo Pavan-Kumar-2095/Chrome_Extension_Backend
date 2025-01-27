@@ -1,4 +1,4 @@
-const PORT = 8000;
+const PORT = 3000;
 const cors = require('cors');
 const express = require('express');
 const app = express();
@@ -15,7 +15,8 @@ const key = process.env.api_key;
 const genAI = new GoogleGenerativeAI(api_key=key);  
 
 app.get('/', async (req, res) => {
-  console.log("connected")
+  console.log("connected");
+  res.send("Server is up and running");
 });
 
 
