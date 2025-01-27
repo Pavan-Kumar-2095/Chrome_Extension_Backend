@@ -12,7 +12,7 @@ app.use(cors());
 
 const key = process.env.api_key;
 
-const genAI = new GoogleGenerativeAI(api_key=key);  
+const genAI = new GoogleGenerativeAI(api_key="AIzaSyAjHwUezAl-I-JmzVokQ7TpIE0V8Y9Y1YY");  
 
 app.get('/', async (req, res) => {
   console.log("connected");
