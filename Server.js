@@ -75,13 +75,13 @@ app.post('/meaning', async (req, res) => {
     }
 });
 
-app.post('/Information', async (req, res) => {
-  console.log("extracting information of the  data...");
+app.post('/Check_Grammer', async (req, res) => {
+  console.log("Checking Grammer of the  data...");
     try{
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
         const prompt = req.body.message;
         
-        const result = await model.generateContent([ `  information of the word in english ` , prompt ]);
+        const result = await model.generateContent([ `  Check grammer of Sentence and return only the correct sentence ` , prompt ]);
         
         const responseText = await result.response.text();
         console.log(prompt, responseText , result);
