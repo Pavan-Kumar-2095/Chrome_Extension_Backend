@@ -81,7 +81,7 @@ app.post('/Check_Grammer', async (req, res) => {
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
         const prompt = req.body.message;
         
-        const result = await model.generateContent([ `Check the grammar and spelling of the sentence and return only the corrected sentence : ` , prompt ]);
+        const result = await model.generateContent([ `Check the grammar and spelling of the following sentence and return only the corrected version of this sentence : ` , prompt ]);
         
         const responseText = await result.response.text();
         console.log(prompt, responseText , result);
